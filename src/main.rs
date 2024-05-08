@@ -1,12 +1,12 @@
 use anyhow::{Error, Result};
-use tokio::{sync::mpsc};
-use tokio_stream::StreamExt;
+use tokio::sync::mpsc;
 use tokio_i3ipc::{
     event::{Event, Subscribe, WindowChange},
     msg::Msg,
     reply::{Node, NodeLayout, Rect},
     I3,
 };
+use tokio_stream::StreamExt;
 
 #[rustfmt::skip]
 fn split_rect(r: Rect) -> &'static str {
@@ -49,7 +49,6 @@ async fn main() -> Result<()> {
                     window_data.container.layout,
                     NodeLayout::Tabbed | NodeLayout::Stacked
                 );
-
                 let (name, tabbed_parent) = (
                     window_data.container.name,
                     has_tabbed_parent(&i3.get_tree().await?, window_data.container.id, is_tabbed),

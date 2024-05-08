@@ -1,0 +1,41 @@
+name: aur-publish
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  aur-publish:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Extract crate information
+      shell: bash
+      run: |
+        echo "PROJECT_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' timer_core/Cargo.toml | head -n1)" >> $GITHUB_ENV
+
+    - name: Create PKGBUILD
+      shell: bash
+      run: |
+        curl -s https://api.github.com/repos/rash-sh/rash/releases/latest \
+          | grep browser_download_url \
+          | grep x86_64 \
+          | grep linux \
+          | grep gnu \
+          | cut -d '"' -f 4 \
+          | xargs curl -L \
+          | tar xvz -C /usr/local/bin
+        .ci/generate-pkgbuild.rh
+
+    - name: Publish AUR package
+      uses: KSXGitHub/github-actions-deploy-aur@v2.7.0
+      with:
+        pkgname: i3-auto-layout
+        pkgbuild: ./PKGBUILD
+        commit_username: ${{ secrets.AUR_USERNAME }}
+        commit_email: ${{ secrets.AUR_EMAIL }}
+        ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        commit_message: Update AUR package to version ${{ env.PROJECT_VERSION }}
+        ssh_keyscan_types: rsa,ed25519
