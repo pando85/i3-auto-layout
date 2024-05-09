@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # https://tera.netlify.app/docs/#introduction
 body = """
 {% if version %}\
-    ## [{{ version }}](https://github.com/pando85/timer/tree/{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
+    ## [{{ version }}](https://github.com/pando85/i3-auto-layout/tree/{{ version }}) - {{ timestamp | date(format="%Y-%m-%d") }}
 {% else %}\
     ## [unreleased]
 {% endif %}\
