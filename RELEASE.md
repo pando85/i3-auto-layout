@@ -1,13 +1,14 @@
 # Release workflow
 
+- Bump version in `Cargo.toml`.
+- Update lock file: `cargo update`.
 - Test:
   ```bash
+  make release
   pkill i3-auto-layout
   sudo cp ${CARGO_TARGET_DIR}/x86_64-unknown-linux-gnu/release/i3-auto-layout /usr/local/bin/i3-auto-layout
   i3-msg restart
   ```
-- Bump version in `Cargo.toml`.
-- Update lock file: `cargo update`.
 - Update `CHANGELOG.md` with `make update-changelog`.
 - Merge PR.
 - Tag version in main branch: `make tag`
