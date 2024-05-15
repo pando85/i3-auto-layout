@@ -1,4 +1,7 @@
 use anyhow::{Error, Result};
+use flexi_logger::DeferredNow;
+use flexi_logger::TS_DASHES_BLANK_COLONS_DOT_BLANK;
+use log::Record;
 use tokio::sync::mpsc;
 use tokio_i3ipc::{
     event::{Event, Subscribe, WindowChange},
@@ -8,10 +11,28 @@ use tokio_i3ipc::{
 };
 use tokio_stream::StreamExt;
 
-#[rustfmt::skip]
+pub fn ts_log_format(
+    w: &mut dyn std::io::Write,
+    now: &mut DeferredNow,
+    record: &Record,
+) -> Result<(), std::io::Error> {
+    write!(
+        w,
+        "[{}] [{}:{}] ",
+        now.format(TS_DASHES_BLANK_COLONS_DOT_BLANK),
+        record.level(),
+        record.line().unwrap_or(0),
+    )?;
+
+    write!(w, "{}", &record.args())
+}
+
 fn split_rect(r: Rect) -> &'static str {
-    if r.width > r.height { "split h" }
-    else { "split v" }
+    if r.width > r.height {
+        "split h"
+    } else {
+        "split v"
+    }
 }
 
 // walk the tree and determine if `window_id` has tabbed parent
@@ -29,11 +50,8 @@ fn has_tabbed_parent(node: &Node, window_id: usize, tabbed: bool) -> bool {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    flexi_logger::Logger::try_with_env()?.start()?;
+async fn run() -> Result<(), anyhow::Error> {
     let (send, mut recv) = mpsc::channel::<&'static str>(10);
-
     let s_handle = tokio::spawn(async move {
         let mut event_listener = {
             let mut i3 = I3::connect().await?;
@@ -77,4 +95,17 @@ async fn main() -> Result<()> {
     let (send, recv) = tokio::try_join!(s_handle, r_handle)?;
     send.and(recv)?;
     Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    flexi_logger::Logger::try_with_env()?
+        .format_for_stderr(ts_log_format)
+        .start()?;
+
+    loop {
+        if let Err(e) = run().await {
+            log::error!("Error: {}", e);
+        }
+    }
 }
