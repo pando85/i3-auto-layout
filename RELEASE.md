@@ -1,7 +1,6 @@
 # Release workflow
 
 - Bump version in `Cargo.toml`.
-- Update lock file: `cargo update`.
 - Test:
   ```bash
   make release
@@ -13,7 +12,7 @@
 - Merge PR.
 - Tag version in main branch: `make tag`
 
-## Upgrade dependencies
+## Upgrade dependencies manually
 
 Requirements:
 
