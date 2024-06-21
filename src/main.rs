@@ -101,6 +101,7 @@ async fn run() -> Result<(), anyhow::Error> {
 async fn main() -> Result<()> {
     flexi_logger::Logger::try_with_env()?
         .format_for_stderr(ts_log_format)
+        .use_utc()
         .start()?;
 
     loop {
