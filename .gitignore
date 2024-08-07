@@ -17,3 +17,4 @@ vendor
 vendor.tar.gz
 *.tar.gz
 PKGBUILD
+.envrc
