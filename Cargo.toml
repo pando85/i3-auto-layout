@@ -2,10 +2,10 @@
 name = "i3-auto-layout"
 description = "Automatic, optimal tiling for i3wm"
 version = "0.3.4"
-authors = ["Gregory <gregory.mkv@gmail.com>"]
+authors = ["Pando85 <pando855@gmail.com>"]
 edition = "2018"
-homepage = "https://github.com/chmln/i3-auto-layout"
-repository = "https://github.com/chmln/i3-auto-layout"
+homepage = "https://github.com/pando85/i3-auto-layout"
+repository = "https://github.com/pando85/i3-auto-layout"
 readme = "README.md"
 license = "MIT"
 
