@@ -53,30 +53,38 @@ fn has_tabbed_parent(node: &Node, window_id: usize, tabbed: bool) -> bool {
 async fn run() -> Result<(), anyhow::Error> {
     let (send, mut recv) = mpsc::channel::<&'static str>(10);
     let s_handle = tokio::spawn(async move {
-        let mut event_listener = {
-            let mut i3 = I3::connect().await?;
-            i3.subscribe([Subscribe::Window]).await?;
-            i3.listen()
-        };
+        let mut i3 = I3::connect().await?;
+        i3.subscribe([Subscribe::Window]).await?;
 
-        let i3 = &mut I3::connect().await?;
+        let mut event_listener = i3.listen();
+        let mut i3_for_ops = I3::connect().await?;
 
-        while let Some(Ok(Event::Window(window_data))) = event_listener.next().await {
-            if WindowChange::Focus == window_data.change {
-                let is_tabbed = matches!(
-                    window_data.container.layout,
-                    NodeLayout::Tabbed | NodeLayout::Stacked
-                );
-                let (name, tabbed_parent) = (
-                    window_data.container.name,
-                    has_tabbed_parent(&i3.get_tree().await?, window_data.container.id, is_tabbed),
-                );
-                log::debug!("name={:?}, tabbed_parent={}", &name, tabbed_parent);
-
-                if !tabbed_parent {
-                    send.send(split_rect(window_data.container.window_rect))
-                        .await?;
+        while let Some(event) = event_listener.next().await {
+            match event {
+                Ok(Event::Window(ev)) => {
+                    if ev.change == WindowChange::Focus {
+                        let is_tabbed = matches!(
+                            ev.container.layout,
+                            NodeLayout::Tabbed | NodeLayout::Stacked
+                        );
+                        let (name, tabbed_parent) = (
+                            ev.container.name,
+                            has_tabbed_parent(
+                                &i3_for_ops.get_tree().await?,
+                                ev.container.id,
+                                is_tabbed,
+                            ),
+                        );
+                        log::debug!("name={:?}, tabbed_parent={}", &name, tabbed_parent);
+                        if !tabbed_parent {
+                            send.send(split_rect(ev.container.window_rect)).await?;
+                        }
+                    }
                 }
+                Err(e) => {
+                    log::error!("Error receiving window event: {:?}", e);
+                }
+                _ => {}
             }
         }
         log::debug!("Sender loop ended");
