@@ -11,10 +11,10 @@ license = "MIT"
 
 [dependencies]
 tokio-i3ipc = "0.16.0"
-tokio = { version = "1.37.0", default-features = false, features = ["rt-multi-thread", "macros", "sync"] }
+tokio = { version = "1.37", default-features = false, features = ["rt-multi-thread", "macros", "sync"] }
 anyhow = "1.0.83"
 log = "0.4.21"
-flexi_logger = { version = "0.29.0", default-features = false }
+flexi_logger = { version = "0.29", default-features = false }
 tokio-stream = "0.1.15"
 
 [profile.release]
@@ -25,5 +25,5 @@ debug-assertions = false
 
 [dev-dependencies.cargo-husky]
 version = "1.5"
-default-features = false # Disable features which are enabled by default
+default-features = false  # Disable features which are enabled by default
 features = ["user-hooks"]
