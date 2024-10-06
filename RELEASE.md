@@ -1,15 +1,8 @@
 # Release workflow
 
-- Bump version in `Cargo.toml`.
-- Test:
-  ```bash
-  make release
-  pkill i3-auto-layout
-  sudo cp ${CARGO_TARGET_DIR}/x86_64-unknown-linux-gnu/release/i3-auto-layout /usr/bin/i3-auto-layout
-  i3-msg restart
-  ```
-- Update `CHANGELOG.md` with `make update-changelog`.
-- Merge PR.
+```bash
+.ci/release.sh
+```
 
 ## Upgrade dependencies manually
 
