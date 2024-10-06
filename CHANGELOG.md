@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.6](https://github.com/pando85/i3-auto-layout/tree/v0.3.6) - 2024-10-06
+
+### Added
+
+- Add release script
+
+### Documentation
+
+- Order changelog groups
+
+### Build
+
+- Update Rust crate tokio to v1.39.3
+- Update Rust crate flexi_logger to 0.29.0
+- Update KSXGitHub/github-actions-deploy-aur action to v3
+- Update wagoid/commitlint-github-action action to v6.1.1
+- Update wagoid/commitlint-github-action action to v6.1.2
+- Update Rust crate anyhow to v1.0.89
+- Remove pinned versions from `Cargo.toml`
+- Optimize release binary
+- Update Rust crate flexi_logger to v0.29.1
+- Update Rust crate tokio to v1.40.0
+- Update Rust crate tokio-stream to v0.1.16
+- Change clippy to clechasseur/rs-clippy-check action to v3
+
 ## [v0.3.5](https://github.com/pando85/i3-auto-layout/tree/v0.3.5) - 2024-08-07
 
 ### Build
