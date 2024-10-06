@@ -18,10 +18,11 @@ flexi_logger = { version = "0.29", default-features = false }
 tokio-stream = "0.1.15"
 
 [profile.release]
-lto = true
+codegen-units = 1
 opt-level = 3
-debug = false
-debug-assertions = false
+lto = "fat"
+panic = "abort"
+strip = "symbols"
 
 [dev-dependencies.cargo-husky]
 version = "1.5"
