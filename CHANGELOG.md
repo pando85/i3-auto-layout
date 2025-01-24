@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.7](https://github.com/pando85/i3-auto-layout/tree/v0.3.7) - 2025-01-24
+
+### Fixed
+
+- Clippy Github Action name typo
+- Remove `token` deprecated attr from `rs-clippy-check`
+
+### Build
+
+- Update Rust crate flexi_logger to v0.29.3
+- Update Rust crate anyhow to v1.0.90
+- Update Rust crate anyhow to v1.0.91
+- Update Rust crate anyhow to v1.0.92
+- Update Rust crate anyhow to v1.0.93
+- Update Rust crate anyhow to v1.0.94
+- Update Rust crate anyhow to v1.0.95
+- Update Rust crate log to v0.4.25
+- Update clechasseur/rs-clippy-check action to v4
+- Update Rust crate tokio to v1.43.0
+- Update wagoid/commitlint-github-action action to v6.2.1
+- Update Rust crate tokio-stream to v0.1.17
+- Update Rust crate flexi_logger to v0.29.8
+
 ## [v0.3.6](https://github.com/pando85/i3-auto-layout/tree/v0.3.6) - 2024-10-06
 
 ### Added
