@@ -4,10 +4,10 @@ use flexi_logger::TS_DASHES_BLANK_COLONS_DOT_BLANK;
 use log::Record;
 use tokio::sync::mpsc;
 use tokio_i3ipc::{
+    I3,
     event::{Event, Subscribe, WindowChange},
     msg::Msg,
     reply::{Node, NodeLayout, Rect},
-    I3,
 };
 use tokio_stream::StreamExt;
 
