@@ -1,13 +1,23 @@
 name: aur-publish
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_run:
+    workflows: ["rust.yml"]
+    types:
+      - completed
 
 jobs:
   aur-publish:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' && startsWith(github.ref, 'refs/tags/') }}
+    strategy:
+      matrix:
+        package:
+          - name: i3-auto-layout
+            pkgbuild: PKGBUILD
+          - name: i3-auto-layout-bin
+            pkgbuild: PKGBUILD-bin
+
     steps:
     - uses: actions/checkout@v3
 
@@ -27,15 +37,15 @@ jobs:
           | cut -d '"' -f 4 \
           | xargs curl -L \
           | tar xvz -C /usr/local/bin
-        .ci/generate-pkgbuild.rh
+        .ci/generate-pkgbuild.rh ${{ matrix.package.pkgbuild }}
 
     - name: Publish AUR package
       uses: KSXGitHub/github-actions-deploy-aur@v4.1.1
       with:
-        pkgname: i3-auto-layout
-        pkgbuild: ./PKGBUILD
+        pkgname: ${{ matrix.package.name }}
+        pkgbuild: ./${{ matrix.package.pkgbuild }}
         commit_username: ${{ secrets.AUR_USERNAME }}
         commit_email: ${{ secrets.AUR_EMAIL }}
         ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
-        commit_message: Update AUR package to version ${{ env.PROJECT_VERSION }}
+        commit_message: Update ${{ matrix.package.name }} AUR package to version ${{ env.PROJECT_VERSION }}
         ssh_keyscan_types: rsa,ed25519
