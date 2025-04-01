@@ -2,7 +2,7 @@ name: aur-publish
 
 on:
   workflow_run:
-    workflows: ["rust.yml"]
+    workflows: ["Rust"]
     types:
       - completed
 
