@@ -15,9 +15,5 @@
       ignoreTests: false,
       platformAutomerge: true,
     },
-    {
-      matchFileNames: ["renovate.json5"],
-      commitMessagePrefix: "build(renovate): ",
-    },
   ],
 }
