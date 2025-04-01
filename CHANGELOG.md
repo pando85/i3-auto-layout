@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.10](https://github.com/pando85/i3-auto-layout/tree/v0.3.10) - 2025-04-01
+
+### Build
+
+- Add AUR bin package
+- Update Rust crate flexi_logger to 0.30
+- Update Rust crate log to v0.4.27
+- Fix workflow trigger name
+
 ## [v0.3.9](https://github.com/pando85/i3-auto-layout/tree/v0.3.9) - 2025-04-01
 
 ### Build
