@@ -5,11 +5,14 @@ on:
     workflows: ["Rust"]
     types:
       - completed
+    # github.event.workflow_run.head_branch is the tag value without any prefix
+    branches:
+      - v[0-9]*
 
 jobs:
   aur-publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch =~ 'v[0-9]*' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         package:
