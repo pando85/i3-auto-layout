@@ -5,8 +5,7 @@ on:
     workflows: ["Rust"]
     types:
       - completed
-    branches:
-      - 'refs/tags/**'
+
 jobs:
   aur-publish:
     runs-on: ubuntu-latest
