@@ -32,7 +32,7 @@ yay -S i3-auto-layout-bin
 
 ### Binaries
 
-Binaries are made available each release for the Linux and MacOS operating systems.
+Binaries are made available each release.
 
 You can download a prebuilt binary from our [Releases](https://github.com/pando85/i3-auto-layout/releases).
 
