@@ -10,17 +10,47 @@ Improvements over `i3-alternating-layouts`:
 
 ## Before
 
-![image](https://user-images.githubusercontent.com/11352152/67165362-f207aa80-f351-11e9-92e7-7294bfd678c0.png)
+![image](https://raw.githubusercontent.com/pando85/i3-auto-layout/master/assets/before.png)
 
 ## After
 
-![image](https://user-images.githubusercontent.com/11352152/67165367-f7fd8b80-f351-11e9-8f1c-3ef53528c5ca.png)
+![image](https://raw.githubusercontent.com/pando85/i3-auto-layout/master/assets/after.png)
 
 ## Installation
 
-Grab a binary from [releases](https://github.com/chmln/i3-auto-layout/releases) OR `cargo install --git https://github.com/chmln/i3-auto-layout`
+### Arch Linux
 
-Then somewhere in your i3 config
+```bash
+yay -S i3-auto-layout
+```
+
+or the binary from the AUR:
+
+```bash
+yay -S i3-auto-layout-bin
+```
+
+### Binaries
+
+Binaries are made available each release for the Linux and MacOS operating systems.
+
+You can download a prebuilt binary from our [Releases](https://github.com/pando85/i3-auto-layout/releases).
+
+```bash
+curl -s https://api.github.com/repos/pando85/i3-auto-layout/releases/latest \
+  | grep browser_download_url \
+  | grep -v sha256 \
+  | grep $(uname -m) \
+  | grep linux \
+  | cut -d '"' -f 4 \
+  | xargs curl -L \
+  | tar xvz
+sudo mv i3-auto-layout /usr/local/bin
+```
+
+### Configuration
+
+In your i3 config:
 
 ```conf
 exec_always --no-startup-id i3-auto-layout
