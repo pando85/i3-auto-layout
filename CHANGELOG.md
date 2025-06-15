@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.17](https://github.com/pando85/i3-auto-layout/tree/v0.3.17) - 2025-06-15
+
+### Added
+
+- Add pre-commit and deprecate cargo-husky
+
+### Documentation
+
+- Add images to repository and AUR package install instructions
+- Fix comment about released binaries in README
+
+### Build
+
+- Update rash install
+- Add commit prefix for config migration
+- Allow chore as commit type
+- Update actions/checkout action to v4
+- Update Rust crate tokio to v1.44.2
+- Update Rust crate anyhow to v1.0.98
+- Update ubuntu runners
+- Update Rust crate flexi_logger to v0.30.1
+- Update Rust crate tokio to v1.45.1
+- Update Rust crate flexi_logger to v0.30.2
+- Update pre-commit hook renovatebot/pre-commit-hooks to v40.56.3
+
+### Chore
+
+- Migrate config renovate.json5
+
 ## [v0.3.16](https://github.com/pando85/i3-auto-layout/tree/v0.3.16) - 2025-04-01
 
 ### Build
