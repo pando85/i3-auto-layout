@@ -56,7 +56,7 @@ sudo mv i3-auto-layout /usr/local/bin
 In your i3 config:
 
 ```conf
-exec -no-startup-id i3-auto-layout
+exec_always -no-startup-id i3-auto-layout
 ```
 
 ## Debug

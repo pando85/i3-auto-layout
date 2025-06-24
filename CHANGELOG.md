@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.0](https://github.com/pando85/i3-auto-layout/tree/v0.4.0) - 2025-06-24
+
+### Added
+
+- Add sway support
+
+### Documentation
+
+- Update README with sway compatibility
+
+### Build
+
+- Update pre-commit hook renovatebot/pre-commit-hooks to v40.57.1
+- Update AUR rash script with uri module
+- Auto update renovate pre-commit once a month automatically
+- Update pre-commit hook renovatebot/pre-commit-hooks to v40.58.0
+- Update Rust crate flexi_logger to 0.31
+
+### Testing
+
+- Deprecate commitlint workflow
+
 ## [v0.3.17](https://github.com/pando85/i3-auto-layout/tree/v0.3.17) - 2025-06-15
 
 ### Added

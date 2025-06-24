@@ -8,7 +8,7 @@ vim Cargo.toml
 make release
 pkill i3-auto-layout
 sudo cp ${CARGO_TARGET_DIR:-target}/x86_64-unknown-linux-gnu/release/i3-auto-layout /usr/bin/i3-auto-layout
-i3-msg restart
+i3-msg restart || sway reload
 
 make update-changelog
 
