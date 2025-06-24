@@ -1,15 +1,51 @@
-use anyhow::{Error, Result};
+use crate::backend::WMAdapter;
+use crate::backend::i3::I3Adapter;
+use crate::backend::sway::SwayAdapter;
+use crate::backend::{generic_command_loop, generic_event_loop};
+
+use anyhow::Result;
 use flexi_logger::DeferredNow;
 use flexi_logger::TS_DASHES_BLANK_COLONS_DOT_BLANK;
 use log::Record;
 use tokio::sync::mpsc;
-use tokio_i3ipc::{
+
+mod backend;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WMBackend {
     I3,
-    event::{Event, Subscribe, WindowChange},
-    msg::Msg,
-    reply::{Node, NodeLayout, Rect},
-};
-use tokio_stream::StreamExt;
+    Sway,
+}
+
+pub struct WM {
+    backend: WMBackend,
+}
+
+impl WM {
+    /// Detects the running window manager backend (i3 or sway) by attempting a real IPC operation.
+    pub async fn detect() -> Result<Self> {
+        log::debug!("detecting window manager backend...");
+        if I3Adapter::try_connection().await? {
+            log::info!("detected i3 backend");
+            Ok(Self {
+                backend: WMBackend::I3,
+            })
+        } else if SwayAdapter::try_connection().await? {
+            log::info!("detected sway backend");
+            Ok(Self {
+                backend: WMBackend::Sway,
+            })
+        } else {
+            log::error!("neither i3 nor sway detected or both failed get_tree()");
+            Err(anyhow::anyhow!(
+                "Neither i3 nor sway detected or both failed get_tree()"
+            ))
+        }
+    }
+    pub fn backend(&self) -> WMBackend {
+        self.backend
+    }
+}
 
 pub fn ts_log_format(
     w: &mut dyn std::io::Write,
@@ -27,91 +63,40 @@ pub fn ts_log_format(
     write!(w, "{}", &record.args())
 }
 
-fn split_rect(r: Rect) -> &'static str {
-    if r.width > r.height {
-        "split h"
-    } else {
-        "split v"
-    }
-}
-
-// walk the tree and determine if `window_id` has tabbed parent
-fn has_tabbed_parent(node: &Node, window_id: usize, tabbed: bool) -> bool {
-    if node.id == window_id {
-        tabbed
-    } else {
-        node.nodes.iter().any(|child| {
-            has_tabbed_parent(
-                child,
-                window_id,
-                matches!(node.layout, NodeLayout::Tabbed | NodeLayout::Stacked),
-            )
-        })
-    }
-}
-
-async fn run() -> Result<(), anyhow::Error> {
-    let (send, mut recv) = mpsc::channel::<&'static str>(10);
-    let s_handle = tokio::spawn(async move {
-        let mut i3 = I3::connect().await?;
-        i3.subscribe([Subscribe::Window]).await?;
-
-        let mut event_listener = i3.listen();
-        let mut i3_for_ops = I3::connect().await?;
-
-        while let Some(event) = event_listener.next().await {
-            match event {
-                Ok(Event::Window(ev)) => {
-                    if ev.change == WindowChange::Focus {
-                        let is_tabbed = matches!(
-                            ev.container.layout,
-                            NodeLayout::Tabbed | NodeLayout::Stacked
-                        );
-                        let (name, tabbed_parent) = (
-                            ev.container.name,
-                            has_tabbed_parent(
-                                &i3_for_ops.get_tree().await?,
-                                ev.container.id,
-                                is_tabbed,
-                            ),
-                        );
-                        log::debug!("name={:?}, tabbed_parent={}", &name, tabbed_parent);
-                        if !tabbed_parent {
-                            send.send(split_rect(ev.container.window_rect)).await?;
-                        }
-                    }
-                }
-                Err(e) => {
-                    log::error!("Error receiving window event: {:?}", e);
-                }
-                _ => {}
-            }
+/// Main event and command loop, spawns backend-specific tasks.
+async fn run() -> Result<()> {
+    let (send, recv) = mpsc::channel::<&'static str>(10);
+    log::debug!("starting backend event and command loops");
+    let wm = WM::detect().await?;
+    let backend = wm.backend();
+    log::debug!("spawning event and command loops for {:?}", backend);
+    match backend {
+        WMBackend::I3 => {
+            let event_conn = I3Adapter::new_connection().await?;
+            let cmd_conn = I3Adapter::new_connection().await?;
+            let s_handle = tokio::spawn(generic_event_loop::<I3Adapter>(event_conn, send));
+            let r_handle = tokio::spawn(generic_command_loop::<I3Adapter>(cmd_conn, recv));
+            let (send, recv) = tokio::try_join!(s_handle, r_handle)?;
+            send.and(recv)?;
         }
-        log::debug!("Sender loop ended");
-        Ok::<_, Error>(())
-    });
-
-    let r_handle = tokio::spawn(async move {
-        let mut i3 = I3::connect().await?;
-        while let Some(cmd) = recv.recv().await {
-            i3.send_msg_body(Msg::RunCommand, cmd).await?;
+        WMBackend::Sway => {
+            let event_conn = SwayAdapter::new_connection().await?;
+            let cmd_conn = SwayAdapter::new_connection().await?;
+            let s_handle = tokio::spawn(generic_event_loop::<SwayAdapter>(event_conn, send));
+            let r_handle = tokio::spawn(generic_command_loop::<SwayAdapter>(cmd_conn, recv));
+            let (send, recv) = tokio::try_join!(s_handle, r_handle)?;
+            send.and(recv)?;
         }
-        log::debug!("Receiver loop ended");
-        Ok::<_, Error>(())
-    });
-
-    let (send, recv) = tokio::try_join!(s_handle, r_handle)?;
-    send.and(recv)?;
+    }
     Ok(())
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+pub async fn main() -> Result<()> {
     flexi_logger::Logger::try_with_env()?
         .format_for_stderr(ts_log_format)
         .use_utc()
         .start()?;
-
     loop {
         if let Err(e) = run().await {
             log::error!("Error: {}", e);
