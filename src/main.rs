@@ -97,9 +97,18 @@ pub async fn main() -> Result<()> {
         .format_for_stderr(ts_log_format)
         .use_utc()
         .start()?;
+    const INITIAL_BACKOFF: f64 = 0.2;
+    const MAX_BACKOFF: f64 = 5.0;
+    let mut backoff = INITIAL_BACKOFF;
+
     loop {
-        if let Err(e) = run().await {
-            log::error!("Error: {}", e);
+        match run().await {
+            Ok(_) => backoff = INITIAL_BACKOFF,
+            Err(e) => {
+                log::error!("{}. Retrying in {:.1}s", e, backoff);
+                std::thread::sleep(std::time::Duration::from_secs_f64(backoff));
+                backoff = (backoff * 2.0).min(MAX_BACKOFF);
+            }
         }
     }
 }
