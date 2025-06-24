@@ -1,12 +1,14 @@
 # i3-auto-layout
 
-Automatic, optimal tiling for i3wm inspired by the deprecated `i3-alternating-layouts` and bspwm. An appropriate split is set for each window based on its geometry.
+Automatic, optimal tiling for i3wm inspired by the deprecated `i3-alternating-layouts` and bspwm. An
+appropriate split is set for each window based on its geometry.
 
 Improvements over `i3-alternating-layouts`:
 
 - single compiled binary with no dependencies (except i3 of course)
 - written in Rust for maximum performance and low resource usage (~0% CPU, ~0% MEM)
 - works asynchronously over IPC
+- [Sway](https://swaywm.org/) compatibility. Same binary works for both i3 and Sway.
 
 ## Before
 
@@ -34,7 +36,8 @@ yay -S i3-auto-layout-bin
 
 Binaries are made available each release.
 
-You can download a prebuilt binary from our [Releases](https://github.com/pando85/i3-auto-layout/releases).
+You can download a prebuilt binary from our
+[Releases](https://github.com/pando85/i3-auto-layout/releases).
 
 ```bash
 curl -s https://api.github.com/repos/pando85/i3-auto-layout/releases/latest \
@@ -53,7 +56,7 @@ sudo mv i3-auto-layout /usr/local/bin
 In your i3 config:
 
 ```conf
-exec_always --no-startup-id i3-auto-layout
+exec -no-startup-id i3-auto-layout
 ```
 
 ## Debug
