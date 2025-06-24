@@ -16,6 +16,10 @@ anyhow = "1.0.83"
 log = "0.4.21"
 flexi_logger = { version = "0.31", default-features = false }
 tokio-stream = "0.1.15"
+swayipc-async = "2.1.0"
+swayipc-types = "1.4.2"
+async-trait = "0.1.88"
+futures = "0.3.31"
 
 [profile.release]
 codegen-units = 1
