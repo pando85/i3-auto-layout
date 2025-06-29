@@ -69,7 +69,7 @@ async fn run() -> Result<()> {
     log::debug!("starting backend event and command loops");
     let wm = WM::detect().await?;
     let backend = wm.backend();
-    log::debug!("spawning event and command loops for {:?}", backend);
+    log::debug!("spawning event and command loops for {backend:?}");
     match backend {
         WMBackend::I3 => {
             let event_conn = I3Adapter::new_connection().await?;
@@ -105,7 +105,7 @@ pub async fn main() -> Result<()> {
         match run().await {
             Ok(_) => backoff = INITIAL_BACKOFF,
             Err(e) => {
-                log::error!("{}. Retrying in {:.1}s", e, backoff);
+                log::error!("{e}. Retrying in {backoff:.1}s");
                 std::thread::sleep(std::time::Duration::from_secs_f64(backoff));
                 backoff = (backoff * 2.0).min(MAX_BACKOFF);
             }
