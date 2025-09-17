@@ -48,10 +48,10 @@ impl super::WMAdapter for I3Adapter {
         }
     }
     async fn try_connection() -> anyhow::Result<bool> {
-        if let Ok(mut i3) = I3::connect().await {
-            if i3.get_tree().await.is_ok() {
-                return Ok(true);
-            }
+        if let Ok(mut i3) = I3::connect().await
+            && i3.get_tree().await.is_ok()
+        {
+            return Ok(true);
         }
         Ok(false)
     }

@@ -39,24 +39,23 @@ pub async fn generic_event_loop<T: WMAdapter>(
 ) -> Result<(), Error> {
     let mut events = T::subscribe_window_events(&mut conn).await?;
     while let Some(event) = events.next().await {
-        if let Ok(ev) = event {
-            if T::window_change_is_focus(&ev) {
-                if let Some(container) = T::extract_window_event(&ev) {
-                    let is_tabbed = T::is_tabbed_layout(container);
-                    let tabbed_parent = T::has_tabbed_parent(
-                        &T::get_tree(&mut conn).await?,
-                        &T::get_id(container),
-                        is_tabbed,
-                    );
-                    log::debug!(
-                        "name={:?}, tabbed_parent={}",
-                        T::get_name(container),
-                        tabbed_parent
-                    );
-                    if !tabbed_parent {
-                        send.send(T::split_rect(&T::get_rect(container))).await?;
-                    }
-                }
+        if let Ok(ev) = event
+            && T::window_change_is_focus(&ev)
+            && let Some(container) = T::extract_window_event(&ev)
+        {
+            let is_tabbed = T::is_tabbed_layout(container);
+            let tabbed_parent = T::has_tabbed_parent(
+                &T::get_tree(&mut conn).await?,
+                &T::get_id(container),
+                is_tabbed,
+            );
+            log::debug!(
+                "name={:?}, tabbed_parent={}",
+                T::get_name(container),
+                tabbed_parent
+            );
+            if !tabbed_parent {
+                send.send(T::split_rect(&T::get_rect(container))).await?;
             }
         }
     }

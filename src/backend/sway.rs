@@ -50,10 +50,10 @@ impl super::WMAdapter for SwayAdapter {
         }
     }
     async fn try_connection() -> anyhow::Result<bool> {
-        if let Ok(mut sway) = SwayConnection::new().await {
-            if sway.get_tree().await.is_ok() {
-                return Ok(true);
-            }
+        if let Ok(mut sway) = SwayConnection::new().await
+            && sway.get_tree().await.is_ok()
+        {
+            return Ok(true);
         }
         Ok(false)
     }
