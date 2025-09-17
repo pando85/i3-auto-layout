@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.3](https://github.com/pando85/i3-auto-layout/tree/v0.4.3) - 2025-09-17
+
+### Fixed
+
+- Cargo clippy errors 1.88
+- Cargo clippy errors 1.89
+
+### Build
+
+- Update pre-commit hook renovatebot/pre-commit-hooks to v40.62.1
+- Update pre-commit hook renovatebot/pre-commit-hooks to v41
+- Update Rust crate flexi_logger to v0.31.2
+- Update Rust crate tokio to v1.46.1
+- Update Rust crate tokio to v1.47.0
+- Update pre-commit hook renovatebot/pre-commit-hooks to v41.43.0
+- Update Rust crate tokio to v1.47.1
+- Update Rust crate async-trait to v0.1.89
+- Update actions/checkout action to v5
+- Update Rust crate log to v0.4.28
+- Update Rust crate anyhow to v1.0.99
+- Update actions/stale action to v10
+- Update pre-commit hook pre-commit/pre-commit-hooks to v6
+- Update actions/setup-python action to v6
+- Update clechasseur/rs-clippy-check action to v5
+- Update Rust crate swayipc-async to v2.1.1
+
 ## [v0.4.2](https://github.com/pando85/i3-auto-layout/tree/v0.4.2) - 2025-06-24
 
 ### Fixed
