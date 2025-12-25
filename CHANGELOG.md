@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.4](https://github.com/pando85/i3-auto-layout/tree/v0.4.4) - 2025-12-25
+
+### Documentation
+
+- Add commit ID links in CHANGELOG.md ([065a27c](https://github.com/pando85/i3-auto-layout/commit/065a27c864997b45c525e82ab61e7cabcf165a0f))
+
+### Build
+
+- Update Rust crate anyhow to v1.0.100 ([7e89156](https://github.com/pando85/i3-auto-layout/commit/7e89156d7d4cab8e3c5603c6cf5ab32434e56516))
+- Update Rust crate flexi_logger to v0.31.4 ([9b52446](https://github.com/pando85/i3-auto-layout/commit/9b524465f8040f27134ecc1baf7341ea4625b2b9))
+- Update pre-commit hook alessandrojcm/commitlint-pre-commit-hook to v9.23.0 ([7a50a15](https://github.com/pando85/i3-auto-layout/commit/7a50a15887a471d3390d7305df881ec667b932b5))
+- Update Rust crate flexi_logger to v0.31.7 ([5b340ec](https://github.com/pando85/i3-auto-layout/commit/5b340ec88d25772c9dda2bc02054c9a4817f362c))
+- Update Rust crate swayipc-types to v1.4.3 ([03ccd61](https://github.com/pando85/i3-auto-layout/commit/03ccd61a0cdfdeb5961499827f34683bf5f8ba4b))
+- Update actions/checkout action to v6 ([c75f215](https://github.com/pando85/i3-auto-layout/commit/c75f21537ed3df35905c815e7250d5d381998e4c))
+- Update Rust crate log to v0.4.29 ([ffa6eb5](https://github.com/pando85/i3-auto-layout/commit/ffa6eb5e4679c1dc56049647751b446fef4f47f6))
+- Update Rust crate tokio to v1.48.0 ([0cbcc64](https://github.com/pando85/i3-auto-layout/commit/0cbcc646507e1c58c73907969cf7232d6c4bbaeb))
+- Update actions/cache action to v5 ([51e977b](https://github.com/pando85/i3-auto-layout/commit/51e977b44682b94973911c8fad55bb533b6d0fb7))
+
 ## [v0.4.3](https://github.com/pando85/i3-auto-layout/tree/v0.4.3) - 2025-09-17
 
 ### Fixed
