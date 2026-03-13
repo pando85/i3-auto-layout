@@ -312,7 +312,7 @@ dependencies = [
  "futures",
  "log",
  "swayipc-async",
- "swayipc-types 1.4.3",
+ "swayipc-types",
  "tokio",
  "tokio-i3ipc",
  "tokio-stream",
@@ -572,18 +572,7 @@ dependencies = [
  "futures-lite",
  "serde",
  "serde_json",
- "swayipc-types 2.0.1",
-]
-
-[[package]]
-name = "swayipc-types"
-version = "1.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a59277899d1da02e8d04f5118d780ba8d769c3c3c9f9fdbae4c2e77a56312a4f"
-dependencies = [
- "serde",
- "serde_json",
- "thiserror",
+ "swayipc-types",
 ]
 
 [[package]]
