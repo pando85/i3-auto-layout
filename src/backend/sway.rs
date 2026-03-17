@@ -55,19 +55,12 @@ impl super::WMAdapter for SwayAdapter {
     }
 
     async fn try_connection() -> anyhow::Result<bool> {
-        match SwayConnection::new().await {
-            Ok(mut sway) => match sway.get_tree().await {
-                Ok(_) => Ok(true),
-                Err(e) => {
-                    log::debug!("sway connection succeeded but get_tree failed: {e}");
-                    Ok(false)
-                }
-            },
-            Err(e) => {
-                log::debug!("sway connection failed: {e}");
-                Ok(false)
-            }
+        if let Ok(mut sway) = SwayConnection::new().await
+            && sway.get_tree().await.is_ok()
+        {
+            return Ok(true);
         }
+        Ok(false)
     }
 
     async fn new_connection() -> Result<Self::Connection, Error> {
@@ -91,16 +84,18 @@ impl super::WMAdapter for SwayAdapter {
     }
 
     fn extract_window_event(ev: &Self::Event) -> Option<&Self::Node> {
-        match ev {
-            swayipc_async::Event::Window(win_ev) => Some(&win_ev.container),
-            _ => None,
+        if let swayipc_async::Event::Window(win_ev) = ev {
+            Some(&win_ev.container)
+        } else {
+            None
         }
     }
 
     fn window_change_is_focus(ev: &Self::Event) -> bool {
-        match ev {
-            swayipc_async::Event::Window(win_ev) => win_ev.change == WindowChange::Focus,
-            _ => false,
+        if let swayipc_async::Event::Window(win_ev) = ev {
+            win_ev.change == WindowChange::Focus
+        } else {
+            false
         }
     }
 

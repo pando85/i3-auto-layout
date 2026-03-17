@@ -3,9 +3,9 @@
 //! This application automatically determines the best split direction (horizontal or vertical)
 //! for windows based on their geometry, inspired by bspwm's automatic tiling behavior.
 
+use crate::backend::WMAdapter;
 use crate::backend::i3::I3Adapter;
 use crate::backend::sway::SwayAdapter;
-use crate::backend::WMAdapter;
 use crate::backend::{generic_command_loop, generic_event_loop};
 
 use anyhow::Result;

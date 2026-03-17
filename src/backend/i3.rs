@@ -1,10 +1,10 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use tokio_i3ipc::{
+    I3,
     event::{Event, Subscribe, WindowChange},
     msg::Msg,
     reply::{Node, NodeLayout, Rect},
-    I3,
 };
 use tokio_stream::StreamExt;
 
@@ -53,19 +53,12 @@ impl super::WMAdapter for I3Adapter {
     }
 
     async fn try_connection() -> anyhow::Result<bool> {
-        match I3::connect().await {
-            Ok(mut i3) => match i3.get_tree().await {
-                Ok(_) => Ok(true),
-                Err(e) => {
-                    log::debug!("i3 connection succeeded but get_tree failed: {e}");
-                    Ok(false)
-                }
-            },
-            Err(e) => {
-                log::debug!("i3 connection failed: {e}");
-                Ok(false)
-            }
+        if let Ok(mut i3) = I3::connect().await
+            && i3.get_tree().await.is_ok()
+        {
+            return Ok(true);
         }
+        Ok(false)
     }
 
     async fn new_connection() -> Result<Self::Connection, Error> {
@@ -89,16 +82,18 @@ impl super::WMAdapter for I3Adapter {
     }
 
     fn extract_window_event(ev: &Self::Event) -> Option<&Self::Node> {
-        match ev {
-            Event::Window(win_ev) => Some(&win_ev.container),
-            _ => None,
+        if let Event::Window(win_ev) = ev {
+            Some(&win_ev.container)
+        } else {
+            None
         }
     }
 
     fn window_change_is_focus(ev: &Self::Event) -> bool {
-        match ev {
-            Event::Window(win_ev) => win_ev.change == WindowChange::Focus,
-            _ => false,
+        if let Event::Window(win_ev) = ev {
+            win_ev.change == WindowChange::Focus
+        } else {
+            false
         }
     }
 
