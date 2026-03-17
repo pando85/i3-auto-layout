@@ -7,6 +7,9 @@ use swayipc_async::{
 use swayipc_types::WindowChange;
 use tokio_stream::StreamExt;
 
+use super::compute_split_direction;
+
+/// Adapter for Sway window manager IPC.
 pub struct SwayAdapter;
 pub struct SwayConn(pub SwayConnection);
 
@@ -24,22 +27,23 @@ impl super::WMAdapter for SwayAdapter {
             SwayNodeLayout::Tabbed | SwayNodeLayout::Stacked
         )
     }
+
     fn get_id(node: &Self::Node) -> Self::Id {
         node.id
     }
+
     fn get_rect(node: &Self::Node) -> Self::Rect {
         node.rect
     }
+
     fn get_name(node: &Self::Node) -> Option<String> {
         node.name.clone()
     }
+
     fn split_rect(rect: &Self::Rect) -> &'static str {
-        if rect.width > rect.height {
-            "split h"
-        } else {
-            "split v"
-        }
+        compute_split_direction(rect.width, rect.height)
     }
+
     fn has_tabbed_parent(node: &Self::Node, window_id: &Self::Id, tabbed: bool) -> bool {
         if &node.id == window_id {
             tabbed
@@ -49,44 +53,57 @@ impl super::WMAdapter for SwayAdapter {
             })
         }
     }
+
     async fn try_connection() -> anyhow::Result<bool> {
-        if let Ok(mut sway) = SwayConnection::new().await
-            && sway.get_tree().await.is_ok()
-        {
-            return Ok(true);
+        match SwayConnection::new().await {
+            Ok(mut sway) => match sway.get_tree().await {
+                Ok(_) => Ok(true),
+                Err(e) => {
+                    log::debug!("sway connection succeeded but get_tree failed: {e}");
+                    Ok(false)
+                }
+            },
+            Err(e) => {
+                log::debug!("sway connection failed: {e}");
+                Ok(false)
+            }
         }
-        Ok(false)
     }
+
     async fn new_connection() -> Result<Self::Connection, Error> {
-        Ok(SwayConn(SwayConnection::new().await?))
+        SwayConnection::new()
+            .await
+            .map(SwayConn)
+            .map_err(|e| anyhow::anyhow!("Failed to connect to sway: {}", e))
     }
-    // --- trait required methods ---
+
     async fn get_tree(conn: &mut Self::Connection) -> Result<Self::Node, Error> {
         conn.0.get_tree().await.map_err(Error::from)
     }
+
     async fn subscribe_window_events(
         conn: &mut Self::Connection,
     ) -> Result<Box<dyn futures::Stream<Item = Result<Self::Event, Error>> + Send + Unpin>, Error>
     {
-        // Take ownership of the connection for listen
         let owned = std::mem::replace(conn, SwayConn(SwayConnection::new().await?));
         let stream = owned.0.subscribe(&[SwayEventType::Window]).await?;
         Ok(Box::new(stream.map(|e| e.map_err(Error::from))))
     }
+
     fn extract_window_event(ev: &Self::Event) -> Option<&Self::Node> {
-        if let swayipc_async::Event::Window(win_ev) = ev {
-            Some(&win_ev.container)
-        } else {
-            None
+        match ev {
+            swayipc_async::Event::Window(win_ev) => Some(&win_ev.container),
+            _ => None,
         }
     }
+
     fn window_change_is_focus(ev: &Self::Event) -> bool {
-        if let swayipc_async::Event::Window(win_ev) = ev {
-            win_ev.change == WindowChange::Focus
-        } else {
-            false
+        match ev {
+            swayipc_async::Event::Window(win_ev) => win_ev.change == WindowChange::Focus,
+            _ => false,
         }
     }
+
     async fn send_command(conn: &mut Self::Connection, cmd: &str) -> Result<(), Error> {
         conn.0.run_command(cmd).await?;
         Ok(())
