@@ -1,13 +1,16 @@
 use anyhow::Error;
 use async_trait::async_trait;
 use tokio_i3ipc::{
-    I3,
     event::{Event, Subscribe, WindowChange},
     msg::Msg,
     reply::{Node, NodeLayout, Rect},
+    I3,
 };
 use tokio_stream::StreamExt;
 
+use super::compute_split_direction;
+
+/// Adapter for i3 window manager IPC.
 pub struct I3Adapter;
 pub struct I3Conn(pub I3);
 
@@ -22,22 +25,23 @@ impl super::WMAdapter for I3Adapter {
     fn is_tabbed_layout(node: &Self::Node) -> bool {
         matches!(node.layout, NodeLayout::Tabbed | NodeLayout::Stacked)
     }
+
     fn get_id(node: &Self::Node) -> Self::Id {
         node.id
     }
+
     fn get_rect(node: &Self::Node) -> Self::Rect {
         node.window_rect.clone()
     }
+
     fn get_name(node: &Self::Node) -> Option<String> {
         node.name.clone()
     }
+
     fn split_rect(rect: &Self::Rect) -> &'static str {
-        if rect.width > rect.height {
-            "split h"
-        } else {
-            "split v"
-        }
+        compute_split_direction(rect.width as i32, rect.height as i32)
     }
+
     fn has_tabbed_parent(node: &Self::Node, window_id: &Self::Id, tabbed: bool) -> bool {
         if &node.id == window_id {
             tabbed
@@ -47,44 +51,57 @@ impl super::WMAdapter for I3Adapter {
             })
         }
     }
+
     async fn try_connection() -> anyhow::Result<bool> {
-        if let Ok(mut i3) = I3::connect().await
-            && i3.get_tree().await.is_ok()
-        {
-            return Ok(true);
+        match I3::connect().await {
+            Ok(mut i3) => match i3.get_tree().await {
+                Ok(_) => Ok(true),
+                Err(e) => {
+                    log::debug!("i3 connection succeeded but get_tree failed: {e}");
+                    Ok(false)
+                }
+            },
+            Err(e) => {
+                log::debug!("i3 connection failed: {e}");
+                Ok(false)
+            }
         }
-        Ok(false)
     }
+
     async fn new_connection() -> Result<Self::Connection, Error> {
-        Ok(I3Conn(I3::connect().await?))
+        I3::connect()
+            .await
+            .map(I3Conn)
+            .map_err(|e| anyhow::anyhow!("Failed to connect to i3: {}", e))
     }
-    // --- trait required methods ---
+
     async fn get_tree(conn: &mut Self::Connection) -> Result<Self::Node, Error> {
         conn.0.get_tree().await.map_err(Error::from)
     }
+
     async fn subscribe_window_events(
         conn: &mut Self::Connection,
     ) -> Result<Box<dyn futures::Stream<Item = Result<Self::Event, Error>> + Send + Unpin>, Error>
     {
-        // Take ownership of the connection for listen
         let mut owned = std::mem::replace(conn, I3Conn(I3::connect().await?));
         owned.0.subscribe([Subscribe::Window]).await?;
         Ok(Box::new(owned.0.listen().map(|e| e.map_err(Error::from))))
     }
+
     fn extract_window_event(ev: &Self::Event) -> Option<&Self::Node> {
-        if let Event::Window(win_ev) = ev {
-            Some(&win_ev.container)
-        } else {
-            None
+        match ev {
+            Event::Window(win_ev) => Some(&win_ev.container),
+            _ => None,
         }
     }
+
     fn window_change_is_focus(ev: &Self::Event) -> bool {
-        if let Event::Window(win_ev) = ev {
-            win_ev.change == WindowChange::Focus
-        } else {
-            false
+        match ev {
+            Event::Window(win_ev) => win_ev.change == WindowChange::Focus,
+            _ => false,
         }
     }
+
     async fn send_command(conn: &mut Self::Connection, cmd: &str) -> Result<(), Error> {
         conn.0.send_msg_body(Msg::RunCommand, cmd).await?;
         Ok(())

@@ -6,7 +6,20 @@ use tokio::sync::mpsc;
 pub mod i3;
 pub mod sway;
 
-/// Abstraction for WM backend operations
+/// Determines the optimal split direction based on container dimensions.
+/// Returns "split h" for wide containers (horizontal split) or "split v" for tall containers.
+fn compute_split_direction(width: i32, height: i32) -> &'static str {
+    if width > height {
+        "split h"
+    } else {
+        "split v"
+    }
+}
+
+/// Abstraction for window manager backend operations.
+///
+/// This trait provides a common interface for interacting with different window managers
+/// (i3 and Sway), allowing the core logic to be shared between implementations.
 #[async_trait]
 pub trait WMAdapter: Send + Sync + 'static {
     type Node;
@@ -15,53 +28,80 @@ pub trait WMAdapter: Send + Sync + 'static {
     type Id;
     type Connection: Send + Sync;
 
+    /// Checks if a node uses a tabbed or stacked layout.
     fn is_tabbed_layout(node: &Self::Node) -> bool;
+    /// Returns the unique identifier for a node.
     fn get_id(node: &Self::Node) -> Self::Id;
+    /// Returns the rectangle dimensions for a node.
     fn get_rect(node: &Self::Node) -> Self::Rect;
+    /// Returns the name/title of a node, if available.
     fn get_name(node: &Self::Node) -> Option<String>;
+    /// Computes the split command based on rectangle dimensions.
     fn split_rect(rect: &Self::Rect) -> &'static str;
+    /// Recursively checks if a node has a tabbed/stacked ancestor.
     fn has_tabbed_parent(node: &Self::Node, window_id: &Self::Id, tabbed: bool) -> bool;
 
+    /// Fetches the complete window tree from the window manager.
     async fn get_tree(conn: &mut Self::Connection) -> Result<Self::Node, Error>;
+    /// Subscribes to window events from the window manager.
     async fn subscribe_window_events(
         conn: &mut Self::Connection,
     ) -> Result<Box<dyn futures::Stream<Item = Result<Self::Event, Error>> + Send + Unpin>, Error>;
+    /// Extracts the window node from an event, if applicable.
     fn extract_window_event(ev: &Self::Event) -> Option<&Self::Node>;
+    /// Checks if an event represents a window focus change.
     fn window_change_is_focus(ev: &Self::Event) -> bool;
+    /// Sends a command to the window manager.
     async fn send_command(conn: &mut Self::Connection, cmd: &str) -> Result<(), Error>;
+    /// Attempts to establish a test connection to verify the backend is available.
     async fn try_connection() -> anyhow::Result<bool>;
+    /// Creates a new connection to the window manager.
     async fn new_connection() -> Result<Self::Connection, Error>;
 }
 
+/// Event loop that monitors window focus changes and sends split commands.
+///
+/// When a window gains focus, this loop determines the optimal split direction
+/// based on the window's dimensions and sends it to the command loop.
 pub async fn generic_event_loop<T: WMAdapter>(
     mut conn: T::Connection,
     send: mpsc::Sender<&'static str>,
 ) -> Result<(), Error> {
     let mut events = T::subscribe_window_events(&mut conn).await?;
     while let Some(event) = events.next().await {
-        if let Ok(ev) = event
-            && T::window_change_is_focus(&ev)
-            && let Some(container) = T::extract_window_event(&ev)
-        {
-            let is_tabbed = T::is_tabbed_layout(container);
-            let tabbed_parent = T::has_tabbed_parent(
-                &T::get_tree(&mut conn).await?,
-                &T::get_id(container),
-                is_tabbed,
-            );
-            log::debug!(
-                "name={:?}, tabbed_parent={}",
-                T::get_name(container),
-                tabbed_parent
-            );
-            if !tabbed_parent {
-                send.send(T::split_rect(&T::get_rect(container))).await?;
+        let ev = match event {
+            Ok(ev) => ev,
+            Err(e) => {
+                log::warn!("event error: {e}");
+                continue;
             }
+        };
+        if !T::window_change_is_focus(&ev) {
+            continue;
+        }
+        let container = match T::extract_window_event(&ev) {
+            Some(c) => c,
+            None => continue,
+        };
+        let is_tabbed = T::is_tabbed_layout(container);
+        let tabbed_parent = T::has_tabbed_parent(
+            &T::get_tree(&mut conn).await?,
+            &T::get_id(container),
+            is_tabbed,
+        );
+        log::debug!(
+            "name={:?}, tabbed_parent={}",
+            T::get_name(container),
+            tabbed_parent
+        );
+        if !tabbed_parent {
+            send.send(T::split_rect(&T::get_rect(container))).await?;
         }
     }
     Ok(())
 }
 
+/// Command loop that receives split commands and executes them on the window manager.
 pub async fn generic_command_loop<T: WMAdapter>(
     mut conn: T::Connection,
     mut recv: mpsc::Receiver<&'static str>,

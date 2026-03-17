@@ -1,6 +1,11 @@
-use crate::backend::WMAdapter;
+//! i3-auto-layout: Automatic, optimal tiling for i3wm and Sway.
+//!
+//! This application automatically determines the best split direction (horizontal or vertical)
+//! for windows based on their geometry, inspired by bspwm's automatic tiling behavior.
+
 use crate::backend::i3::I3Adapter;
 use crate::backend::sway::SwayAdapter;
+use crate::backend::WMAdapter;
 use crate::backend::{generic_command_loop, generic_event_loop};
 
 use anyhow::Result;
@@ -11,6 +16,7 @@ use tokio::sync::mpsc;
 
 mod backend;
 
+/// Supported window manager backends.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WMBackend {
     I3,
@@ -47,6 +53,7 @@ impl WM {
     }
 }
 
+/// Custom log format that includes timestamp, level, and line number.
 pub fn ts_log_format(
     w: &mut dyn std::io::Write,
     now: &mut DeferredNow,
@@ -64,6 +71,9 @@ pub fn ts_log_format(
 }
 
 /// Main event and command loop, spawns backend-specific tasks.
+///
+/// Creates separate connections for event subscription and command execution,
+/// then runs both loops concurrently until an error occurs.
 async fn run() -> Result<()> {
     let (send, recv) = mpsc::channel::<&'static str>(10);
     log::debug!("starting backend event and command loops");
@@ -97,17 +107,17 @@ pub async fn main() -> Result<()> {
         .format_for_stderr(ts_log_format)
         .use_utc()
         .start()?;
-    const INITIAL_BACKOFF: f64 = 0.2;
-    const MAX_BACKOFF: f64 = 5.0;
-    let mut backoff = INITIAL_BACKOFF;
+    const INITIAL_BACKOFF_SECS: f64 = 0.2;
+    const MAX_BACKOFF_SECS: f64 = 5.0;
+    let mut backoff = INITIAL_BACKOFF_SECS;
 
     loop {
         match run().await {
-            Ok(_) => backoff = INITIAL_BACKOFF,
+            Ok(_) => backoff = INITIAL_BACKOFF_SECS,
             Err(e) => {
                 log::error!("{e}. Retrying in {backoff:.1}s");
                 std::thread::sleep(std::time::Duration::from_secs_f64(backoff));
-                backoff = (backoff * 2.0).min(MAX_BACKOFF);
+                backoff = (backoff * 2.0).min(MAX_BACKOFF_SECS);
             }
         }
     }
