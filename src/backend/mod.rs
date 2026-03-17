@@ -9,11 +9,7 @@ pub mod sway;
 /// Determines the optimal split direction based on container dimensions.
 /// Returns "split h" for wide containers (horizontal split) or "split v" for tall containers.
 fn compute_split_direction(width: i32, height: i32) -> &'static str {
-    if width > height {
-        "split h"
-    } else {
-        "split v"
-    }
+    if width > height { "split h" } else { "split v" }
 }
 
 /// Abstraction for window manager backend operations.
@@ -69,33 +65,24 @@ pub async fn generic_event_loop<T: WMAdapter>(
 ) -> Result<(), Error> {
     let mut events = T::subscribe_window_events(&mut conn).await?;
     while let Some(event) = events.next().await {
-        let ev = match event {
-            Ok(ev) => ev,
-            Err(e) => {
-                log::warn!("event error: {e}");
-                continue;
+        if let Ok(ev) = event
+            && T::window_change_is_focus(&ev)
+            && let Some(container) = T::extract_window_event(&ev)
+        {
+            let is_tabbed = T::is_tabbed_layout(container);
+            let tabbed_parent = T::has_tabbed_parent(
+                &T::get_tree(&mut conn).await?,
+                &T::get_id(container),
+                is_tabbed,
+            );
+            log::debug!(
+                "name={:?}, tabbed_parent={}",
+                T::get_name(container),
+                tabbed_parent
+            );
+            if !tabbed_parent {
+                send.send(T::split_rect(&T::get_rect(container))).await?;
             }
-        };
-        if !T::window_change_is_focus(&ev) {
-            continue;
-        }
-        let container = match T::extract_window_event(&ev) {
-            Some(c) => c,
-            None => continue,
-        };
-        let is_tabbed = T::is_tabbed_layout(container);
-        let tabbed_parent = T::has_tabbed_parent(
-            &T::get_tree(&mut conn).await?,
-            &T::get_id(container),
-            is_tabbed,
-        );
-        log::debug!(
-            "name={:?}, tabbed_parent={}",
-            T::get_name(container),
-            tabbed_parent
-        );
-        if !tabbed_parent {
-            send.send(T::split_rect(&T::get_rect(container))).await?;
         }
     }
     Ok(())
