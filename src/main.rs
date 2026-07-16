@@ -67,7 +67,7 @@ pub fn ts_log_format(
         record.line().unwrap_or(0),
     )?;
 
-    write!(w, "{}", &record.args())
+    write!(w, "{}", record.args())
 }
 
 /// Main event and command loop, spawns backend-specific tasks.
