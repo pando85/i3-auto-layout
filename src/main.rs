@@ -13,6 +13,7 @@ use flexi_logger::DeferredNow;
 use flexi_logger::TS_DASHES_BLANK_COLONS_DOT_BLANK;
 use log::Record;
 use tokio::sync::mpsc;
+use tokio::time::Duration;
 
 mod backend;
 
@@ -107,17 +108,22 @@ pub async fn main() -> Result<()> {
         .format_for_stderr(ts_log_format)
         .use_utc()
         .start()?;
-    const INITIAL_BACKOFF_SECS: f64 = 0.2;
-    const MAX_BACKOFF_SECS: f64 = 5.0;
-    let mut backoff = INITIAL_BACKOFF_SECS;
+    const INITIAL_BACKOFF: Duration = Duration::from_millis(200);
+    const MAX_BACKOFF: Duration = Duration::from_secs(5);
+    const RESTART_DELAY: Duration = Duration::from_millis(500);
+    let mut backoff = INITIAL_BACKOFF;
 
     loop {
         match run().await {
-            Ok(_) => backoff = INITIAL_BACKOFF_SECS,
+            Ok(_) => {
+                log::warn!("event stream ended, reconnecting in {RESTART_DELAY:?}");
+                tokio::time::sleep(RESTART_DELAY).await;
+                backoff = INITIAL_BACKOFF;
+            }
             Err(e) => {
-                log::error!("{e}. Retrying in {backoff:.1}s");
-                std::thread::sleep(std::time::Duration::from_secs_f64(backoff));
-                backoff = (backoff * 2.0).min(MAX_BACKOFF_SECS);
+                log::error!("{e}. Retrying in {backoff:?}");
+                tokio::time::sleep(backoff).await;
+                backoff = (backoff * 2).min(MAX_BACKOFF);
             }
         }
     }
