@@ -570,9 +570,9 @@ dependencies = [
 
 [[package]]
 name = "swayipc-types"
-version = "2.0.1"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a29165dc67819a052bd67962b6c9de7c5d4461f0e8d224eb0f7cdd26cf05a650"
+checksum = "a38abba293875141fd89c08df734fc1621218ef3b4adf0e585c155ff62c0cc4d"
 dependencies = [
  "serde",
  "serde_json",
