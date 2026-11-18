@@ -13,7 +13,7 @@ tokio-i3ipc = "0.16.0"
 tokio = { version = "1.37", default-features = false, features = ["macros", "sync"] }
 anyhow = "1.0.83"
 log = "0.4.21"
-flexi_logger = { version = "0.31", default-features = false }
+flexi_logger = { version = "0.32", default-features = false }
 tokio-stream = "0.1.15"
 swayipc-async = "3.0.0"
 swayipc-types = "2.0.0"
